@@ -4,10 +4,24 @@
 OpenStack projects.
 
 Open a file in which unittests are defined, go to a unittest and run it
-in command line mode.
+in command line mode for running it in `py38` environment.
 
 ```
 :OsRunTest
+```
+
+If you want to debug the code from the point you put
+`import pdb; pdb.set_trace()`, run it in the command line mode.
+
+```
+:OsRunDebug
+```
+
+It is configurable if you run `:OsRunTox` with an argument for giving an
+environment. For example, it is equal to run tox in `py38`.
+
+```
+:OsRunTox py38
 ```
 
 If your cursor is on a test class, but outside of a method, it runs
@@ -25,19 +39,6 @@ Install using your favorite package manager. Here is an example of using
 ```
 Plug 'tyru/current-func-info.vim'
 Plug 'yasufum/vim-os-unittestr'
-```
-
-## Configuration
-
-You can define the environment specified with `-e` in tox, as a variable
-`g:vim_os_unittestr_env`. The default value is `py38`.
-Overwrite it in your `.vimrc`, or set it in command line mode. For
-example, set the value to `debug` to run unittest with pdb. You also
-need to insert `import pdb; pdb.set_trace()` in your code to enter pdb
-in this case.
-
-```
-let g:vim_os_unittestr_env = "debug"
 ```
 
 ## License

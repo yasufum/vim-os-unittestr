@@ -6,7 +6,8 @@
 " also run whole of tests if cursor is on other than specific class.
 
 " Usage: Move cursor on a method, class or other than class to run the test(s)
-" you define. Then, run `:RunTox` in command line mode.
+" you define. Then, run `:OsRunTest`, `:OsRunDebug` or `:OsRunTox` in command
+" line mode.
 "
 " You can specify an environment of the test, such as `py38`, `debug` or so,
 " as a global variable `g:vim_os_unittestr_env` in your `.vimrc`. The default
@@ -104,9 +105,18 @@ endfunction
 
 " Open another terminal on vim and show the result, or continue to run
 " debugger if it's run as debugging mode.
-function! s:Run_tox_test()
+function! s:Run_tox_test(...)
+  if a:0 == 0
+    let g:vim_os_unittestr_env = 'py38'
+  elseif a:1 == 'debug'
+    let g:vim_os_unittestr_env = 'debug'
+  else
+    let g:vim_os_unittestr_env = a:1
+  endif
   call term_start(['tox', '-e', g:vim_os_unittestr_env, s:get_test_full_path()])
 endfunction
 
 " Shortuct to lunch the feature, named `RunTox` currently.
 command OsRunTest :call <SID>Run_tox_test()
+command OsRunDebug :call <SID>Run_tox_test('debug')
+command -nargs=1 OsRunTox :call <SID>Run_tox_test(<f-args>)
