@@ -35,6 +35,7 @@ endif
 if !exists("g:vim_os_unittestr_env")
   let g:vim_os_unittestr_env = "py38"
 endif
+let s:unittestr_env = g:vim_os_unittestr_env
 
 " Get class and function on cursor in a file you open as a list. For example,
 " if cursor is on `TestMyCls.my_method`, it returns a list
@@ -107,13 +108,13 @@ endfunction
 " debugger if it's run as debugging mode.
 function! s:Run_tox_test(...)
   if a:0 == 0
-    let g:vim_os_unittestr_env = 'py38'
+    let l:env = s:unittestr_env
   elseif a:1 == 'debug'
-    let g:vim_os_unittestr_env = 'debug'
+    let l:env = 'debug'
   else
-    let g:vim_os_unittestr_env = a:1
+    let l:env = a:1
   endif
-  call term_start(['tox', '-e', g:vim_os_unittestr_env, s:get_test_full_path()])
+  call term_start(['tox', '-e', l:env, s:get_test_full_path()])
 endfunction
 
 " Shortuct to lunch the feature, named `RunTox` currently.
