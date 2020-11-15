@@ -74,6 +74,7 @@ endfunction
 function! s:get_test_full_path()
   let l:res = []
 
+  " Get path of opened file.
   let l:full_path = split(expand("%:p"), "/")
 
   for i in range(len(l:full_path))
@@ -104,6 +105,83 @@ function! s:get_test_full_path()
   return join(l:res, '.')
 endfunction
 
+"""
+" Get abs path of untitest and a set of class and function from test path. For
+" example,
+" `tacker.tests.unit.common.test_config.ConfigurationTest.test_load_paste_app`
+" is converted to
+" [
+"   '/opt/stack/tacker/tacker/tests/unit/common/test_config.py',
+"   ['ConfigurationTest', 'test_load_paste_app']
+" ]
+function! s:get_test_file_path(...)
+  " Need to convert `a.b.c` to `a/b/c` to split first, but I don't know why '.'
+  " cannot be work as a separator...
+  let l:target_path = substitute(a:1, '\.', '/', 'g')
+  let l:target_path = split(l:target_path, '/')
+  if len(l:target_path) < 2
+    echo 'Error: It is not a test path.'
+    return []
+  endif
+
+  " Find class and function names, get it as ['Class', 'function'].
+  let l:ptn_cls = '^Test'  " match a class derived from UnitTest
+  let l:ptn_func = '^test_'
+  let l:name_cls_fun = []
+
+  if len(matchlist(l:target_path[-2], l:ptn_cls)) != 0 && len(matchlist(l:target_path[-1], l:ptn_func)) != 0
+    call add(l:name_cls_fun, l:target_path[-2])
+    call add(l:name_cls_fun, l:target_path[-1])
+    let l:file_path = l:target_path[0:-3]
+  elseif len(matchlist(l:target_path[-2], l:ptn_cls)) != 0
+    call add(l:name_cls_fun, l:target_path[-2])
+    let l:file_path = l:target_path[0:-2]
+  elseif len(matchlist(l:target_path[-1], l:ptn_cls)) != 0
+    call add(l:name_cls_fun, l:target_path[-1])
+    let l:file_path = l:target_path[0:-2]
+  else
+    let l:file_path = l:target_path
+  endif
+
+  " Find absolute path of a file of unittest to be opened, or directory
+  " possibly.
+  " To find the abs path, get path of current dir of opened file, then conbine
+  " it with `l:file_path` and check if it exists. If not found, cut the last
+  " element of this `l:opened_fdir` and try to check step by step until it's
+  " hit.
+  let l:opened_fdir= split(expand("%:p"), "/")[0:-2]
+
+  for i in range(len(l:opened_fdir))
+    let l:path = '/'.join(l:opened_fdir[0:-1-i], '/')
+    let l:path = l:path.'/'.join(l:file_path, '/')
+
+    if filereadable(l:path.'.py')
+      return [l:path.'.py', l:name_cls_fun]
+    elseif isdirectory(l:path)
+      return [l:path, l:name_cls_fun]
+    endif
+  endfor
+
+endfunction
+
+"""
+" Open test function.
+function! s:Open_definition(...)
+  if a:0 > 0  " A test path is given as an argument.
+    let l:fpath = s:get_test_file_path(a:1)
+  else  " No test path given, so get it from position cursor on with '<cWORD>'.
+    let l:fpath = s:get_test_file_path(expand('<cWORD>'))
+  endif
+
+  " Open the file test defined in, and jump to the definition.
+  execute 'new '.l:fpath[0]
+  if len(l:fpath[1]) == 2
+    call search('def '.l:fpath[1][1])
+  elseif len(l:fpath[1]) == 1
+    call search('class '.l:fpath[1][0])
+  endif
+endfunction
+
 " Open another terminal on vim and show the result, or continue to run
 " debugger if it's run as debugging mode.
 function! s:Run_tox_test(...)
@@ -117,7 +195,9 @@ function! s:Run_tox_test(...)
   call term_start(['tox', '-e', l:env, s:get_test_full_path()])
 endfunction
 
-" Shortuct to lunch the feature, named `RunTox` currently.
+" Shortcuts to lunch the feature.
 command OsRunTest :call <SID>Run_tox_test()
 command OsRunDebug :call <SID>Run_tox_test('debug')
 command -nargs=1 OsRunTox :call <SID>Run_tox_test(<f-args>)
+
+command -nargs=? OsOpenDefinition :call <SID>Open_definition(<f-args>)
