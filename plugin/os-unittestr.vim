@@ -189,6 +189,14 @@ function! s:Run_tox_test(...)
     let l:env = s:unittestr_env
   elseif a:1 == 'debug'
     let l:env = 'debug'
+  elseif a:1 == 'debug-insert'
+    " Insert importing pdb at current line.
+    let l:cpos = getpos('.')
+    call cursor(l:cpos[1] - 1, 0)
+    execute ':normal o'.'import pdb; pdb.set_trace()'
+    call cursor(l:cpos[1], 0)
+    execute 'write'
+    let l:env = 'debug'
   else
     let l:env = a:1
   endif
@@ -198,6 +206,7 @@ endfunction
 " Shortcuts to lunch the feature.
 command OsRunTest :call <SID>Run_tox_test()
 command OsRunDebug :call <SID>Run_tox_test('debug')
+command OsRunDebugI :call <SID>Run_tox_test('debug-insert')
 command -nargs=1 OsRunTox :call <SID>Run_tox_test(<f-args>)
 
 command -nargs=? OsOpenDefinition :call <SID>Open_definition(<f-args>)

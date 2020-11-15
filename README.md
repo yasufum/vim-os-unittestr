@@ -32,10 +32,17 @@ Test environment, such as `py38`, can be defined as a variable
 ```
 
 If you want to debug the code from the point you put
-`import pdb; pdb.set_trace()`, run it in the command line mode.
+`import pdb; pdb.set_trace()`, run `:OsRunDebug` in the command line mode.
+You can run debug without importing pdb by yourself by running
+`:OsRunDebugI` which is insert the importing pdb at current position before
+running.
 
 ```
+" Run debug
 :OsRunDebug
+
+" Insert `import pdb; pdb.set_trace()` and run debug
+:OsRunDebugI
 ```
 
 It is configurable if you run `:OsRunTox` with an argument for giving an
