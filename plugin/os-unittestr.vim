@@ -125,7 +125,7 @@ function! s:get_test_file_path(...)
   endif
 
   " Find class and function names, get it as ['Class', 'function'].
-  let l:ptn_cls = '^Test'  " match a class derived from UnitTest
+  let l:ptn_cls = 'Test'  " match a class derived from UnitTest
   let l:ptn_func = '^test_'
   let l:name_cls_fun = []
 
@@ -149,7 +149,11 @@ function! s:get_test_file_path(...)
   " it with `l:file_path` and check if it exists. If not found, cut the last
   " element of this `l:opened_fdir` and try to check step by step until it's
   " hit.
-  let l:opened_fdir= split(expand("%:p"), "/")[0:-2]
+  let l:opened_fdir = split(expand("%:p"), "/")[0:-2]
+  " `expand("%:p")` returns empty list if no file opened.
+  if len(l:opened_fdir) == 0
+    let l:opened_fdir = split(getcwd(), '/')
+  endif
 
   for i in range(len(l:opened_fdir))
     let l:path = '/'.join(l:opened_fdir[0:-1-i], '/')
@@ -174,11 +178,17 @@ function! s:Open_definition(...)
   endif
 
   " Open the file test defined in, and jump to the definition.
-  execute 'new '.l:fpath[0]
-  if len(l:fpath[1]) == 2
-    call search('def '.l:fpath[1][1])
-  elseif len(l:fpath[1]) == 1
-    call search('class '.l:fpath[1][0])
+  if len(l:fpath) == 2
+    execute 'new '.l:fpath[0]
+    if len(l:fpath[1]) == 2  " Jump to method
+      " Jump to class first for considering method is not found possibly.
+      call search('class '.l:fpath[1][0])
+      call search('def '.l:fpath[1][1])
+    elseif len(l:fpath[1]) == 1  " Jump to class
+      call search('class '.l:fpath[1][0])
+    endif
+  else
+    echo 'Error: Failed to open definition...'
   endif
 endfunction
 
