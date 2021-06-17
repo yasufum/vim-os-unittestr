@@ -210,7 +210,16 @@ function! s:Run_tox_test(...)
   else
     let l:env = a:1
   endif
-  call term_start(['tox', '-e', l:env, s:get_test_full_path()])
+  if has('nvim')
+    let l:path = s:get_test_full_path()
+    wincmd n
+    setlocal nonumber norelativenumber signcolumn=no listchars=
+    setlocal nocursorcolumn nocursorline
+    call termopen(['tox', '-e', l:env, l:path])
+    startinsert
+  else
+    call term_start(['tox', '-e', l:env, s:get_test_full_path()])
+  endif
 endfunction
 
 " Shortcuts to lunch the feature.
