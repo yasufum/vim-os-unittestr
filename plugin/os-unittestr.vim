@@ -10,9 +10,10 @@
 " line mode.
 "
 " You can specify an environment of the test, such as `py38`, `debug` or so,
-" as a global variable `g:vim_os_unittestr_env` in your `.vimrc`. The default
-" value is `py38`. So, no need to define it explicitly if you prefer to use
-" the default value.
+" as a global variable `g:vim_os_unittestr_env` in your `.vimrc`. If it's not
+" defined, decided from `python3 -V` command. For example, it's defined as
+" `py39` if the result of the command is 'Python 3.9.9'.
+
 
 " Skip loading again if it's already loaded.
 if exists("g:loaded_vim_os_unittestr")
@@ -30,12 +31,13 @@ if !exists('g:loaded_cfi')
     finish
 endif
 
-" Set default tox env specified with `-e`. It can be overwritten in your
-" `.vimrc`.
-if !exists("g:vim_os_unittestr_env")
-  let g:vim_os_unittestr_env = "py38"
-endif
-let s:unittestr_env = g:vim_os_unittestr_env
+" Return python version as 'py38' for tox.
+function s:get_tox_python_env()
+    let l:pyver = system("python3 -V")
+    let l:ver = split(pyver, " ")[1]
+    let l:matched = matchlist(l:ver, '\v(\d+).(\d+).(\d+)')
+    return 'py3'.l:matched[2]
+endfunction
 
 " Get class and function on cursor in a file you open as a list. For example,
 " if cursor is on `TestMyCls.my_method`, it returns a list
@@ -196,7 +198,10 @@ endfunction
 " debugger if it's run as debugging mode.
 function! s:Run_tox_test(...)
   if a:0 == 0
-    let l:env = s:unittestr_env
+    if !exists("g:vim_os_unittestr_env")
+      let g:vim_os_unittestr_env = s:get_tox_python_env()
+    endif
+    let l:env = g:vim_os_unittestr_env
   elseif a:1 == 'debug'
     let l:env = 'debug'
   elseif a:1 == 'debug-insert'
