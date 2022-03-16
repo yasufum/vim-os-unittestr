@@ -32,7 +32,7 @@ if !exists('g:loaded_cfi')
 endif
 
 " Return python version as 'py38' for tox.
-function s:get_tox_python_env()
+function! s:get_tox_python_env()
     let l:pyver = system("python3 -V")
     let l:ver = split(pyver, " ")[1]
     let l:matched = matchlist(l:ver, '\v(\d+).(\d+).(\d+)')
