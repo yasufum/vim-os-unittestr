@@ -215,7 +215,7 @@ function! s:Run_tox_test(...)
   else
     let l:env = a:1
   endif
-  call term_start(['tox', '-e', l:env, s:get_test_full_path()])
+  call term_start(['tox', '-e', l:env, '--', s:get_test_full_path()])
 endfunction
 
 " Shortcuts to lunch the feature.
